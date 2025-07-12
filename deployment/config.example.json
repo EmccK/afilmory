@@ -1,0 +1,15 @@
+{
+  "name": "My Afilmory",
+  "title": "My Photo Gallery",
+  "description": "Capturing beautiful moments in life, documenting daily warmth and emotions through my lens.",
+  "url": "https://your-domain.com/",
+  "accentColor": "#007bff",
+  "author": {
+    "name": "Your Name",
+    "url": "https://your-website.com/",
+    "avatar": "https://your-avatar-url.com/avatar.png"
+  },
+  "map": [
+    "maplibre"
+  ]
+}

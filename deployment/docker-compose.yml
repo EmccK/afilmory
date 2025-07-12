@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  # Afilmory主应用
+  afilmory:
+    image: ghcr.io/afilmory/afilmory:latest
+    container_name: afilmory-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PG_CONNECTION_STRING=postgresql://afilmory:${POSTGRES_PASSWORD}@postgres:5432/afilmory
+      - S3_ACCESS_KEY_ID=${S3_ACCESS_KEY_ID}
+      - S3_SECRET_ACCESS_KEY=${S3_SECRET_ACCESS_KEY}
+      - S3_BUCKET_NAME=${S3_BUCKET_NAME}
+      - S3_REGION=${S3_REGION:-us-east-1}
+      - S3_ENDPOINT=${S3_ENDPOINT}
+      - S3_CUSTOM_DOMAIN=${S3_CUSTOM_DOMAIN}
+      - S3_PREFIX=${S3_PREFIX:-photos/}
+      - GIT_TOKEN=${GIT_TOKEN}
+      - USE_LOCAL_STORAGE=${USE_LOCAL_STORAGE:-false}
+    volumes:
+      # 映射本地photos目录到容器中 (用于本地存储模式)
+      - ${PHOTOS_PATH:-./photos}:/app/photos
+      # 映射生成的缩略图和清单文件到本地目录
+      - ./data/thumbnails:/app/public/thumbnails
+      - ./data/manifest:/app/apps/web/src/data
+      # 映射配置文件
+      - ./config.json:/app/config.json:ro
+      - ./builder.config.json:/app/builder.config.json:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - afilmory-network
+
+  # PostgreSQL数据库
+  postgres:
+    image: postgres:16-alpine
+    container_name: afilmory-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=afilmory
+      - POSTGRES_USER=afilmory
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U afilmory -d afilmory"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - afilmory-network
+
+networks:
+  afilmory-network:
+    driver: bridge
