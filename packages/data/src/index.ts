@@ -1,4 +1,5 @@
 import type { PhotoManifestItem } from '@afilmory/builder'
+import __MANIFEST__ from './photos-manifest.json'
 
 class PhotoLoader {
   private photos: PhotoManifestItem[] = []
